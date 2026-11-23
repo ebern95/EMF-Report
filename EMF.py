@@ -282,23 +282,23 @@ merged_final['Trade Unit Per Logistic Unit'] = pd.to_numeric(
 ).astype('float64')
 
     # -------- FIXED SECTION --------
-    key_cols = [
-        'SKU Number',
-        'Material Description',
-        'Final Product Specification',
-        'Brand (Trade Description)',
-        'Trade Unit Per Logistic Unit'
-    ]
+key_cols = [
+    'SKU Number',
+    'Material Description',
+    'Final Product Specification',
+    'Brand (Trade Description)',
+    'Trade Unit Per Logistic Unit'
+]
 
-    merged_final = merged_final.copy()
-    merged_final['_order'] = range(len(merged_final))
-    merged_final['_type'] = 0
+merged_final = merged_final.copy()
+merged_final['_order'] = range(len(merged_final))
+merged_final['_type'] = 0
 
-    group_order = (
-        merged_final
-        .groupby(key_cols, as_index=False, dropna=False)['_order']
-        .max()
-    )
+group_order = (
+    merged_final
+    .groupby(key_cols, as_index=False, dropna=False)['_order']
+    .max()
+)
 
     extra_rows = group_order[key_cols].copy()
 
