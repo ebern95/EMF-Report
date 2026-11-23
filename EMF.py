@@ -300,7 +300,7 @@ group_order = (
     .max()
 )
 
-    extra_rows = group_order[key_cols].copy()
+extra_rows = group_order[key_cols].copy()
 
     for col in merged_final.columns:
         if col not in extra_rows.columns:
