@@ -376,7 +376,7 @@ def process_data(df1, df2, df3):
 
     merged_final['Size'] = merged_final['Component Type'].map(size_map)
 
-return merged_final
+    return merged_final
 
 
 # -------------------------------
