@@ -302,52 +302,52 @@ group_order = (
 
 extra_rows = group_order[key_cols].copy()
 
-    for col in merged_final.columns:
-        if col not in extra_rows.columns:
-            extra_rows[col] = None
+for col in merged_final.columns:
+    if col not in extra_rows.columns:
+        extra_rows[col] = None
 
-    extra_rows['_order'] = group_order['_order']
-    extra_rows['_type'] = 1
+extra_rows['_order'] = group_order['_order']
+extra_rows['_type'] = 1
 
-    extra_rows = extra_rows[merged_final.columns]
+extra_rows = extra_rows[merged_final.columns]
 
-    merged_final = pd.concat([merged_final, extra_rows], ignore_index=True)
+merged_final = pd.concat([merged_final, extra_rows], ignore_index=True)
 
-    merged_final = merged_final.sort_values(['_order', '_type'])
-    merged_final = merged_final.drop(columns=['_order', '_type']).reset_index(drop=True)
+merged_final = merged_final.sort_values(['_order', '_type'])
+merged_final = merged_final.drop(columns=['_order', '_type']).reset_index(drop=True)
 
-    merged_final['Material & Subclass'] = merged_final['Material & Subclass'].fillna('FLEXIBLE - PE')
-    merged_final['Wt/Case(g)'] = merged_final['Wt/Case(g)'].fillna(321.475)
-    merged_final['EOL'] = merged_final['EOL'].fillna('RECYCLABLE')
+merged_final['Material & Subclass'] = merged_final['Material & Subclass'].fillna('FLEXIBLE - PE')
+merged_final['Wt/Case(g)'] = merged_final['Wt/Case(g)'].fillna(321.475)
+merged_final['EOL'] = merged_final['EOL'].fillna('RECYCLABLE')
 
-    merged_final['Component Type'] = merged_final['Component Type'].fillna('UL Wrap')
-    merged_final['End User'] = merged_final['End User'].fillna('B2B')
+merged_final['Component Type'] = merged_final['Component Type'].fillna('UL Wrap')
+merged_final['End User'] = merged_final['End User'].fillna('B2B')
 
-    mask = (
-        (merged_final['Wt/Case(g)'] == 321.475)
-        &
-        (merged_final['Trade Unit Per Logistic Unit'].notna())
-        &
-        (merged_final['Trade Unit Per Logistic Unit'] != 0)
-    )
+mask = (
+    (merged_final['Wt/Case(g)'] == 321.475)
+    &
+    (merged_final['Trade Unit Per Logistic Unit'].notna())
+    &
+    (merged_final['Trade Unit Per Logistic Unit'] != 0)
+)
 
-    wt_case = pd.to_numeric(
-        merged_final.loc[mask, 'Wt/Case(g)'],
-        errors='coerce'
-    )
+wt_case = pd.to_numeric(
+    merged_final.loc[mask, 'Wt/Case(g)'],
+    errors='coerce'
+)
 
-    trade_units = pd.to_numeric(
-        merged_final.loc[mask, 'Trade Unit Per Logistic Unit'],
-        errors='coerce'
-    )
+trade_units = pd.to_numeric(
+    merged_final.loc[mask, 'Trade Unit Per Logistic Unit'],
+    errors='coerce'
+)
 
-    merged_final.loc[mask, 'Wt/Case(g)'] = (
-        wt_case / trade_units
-    )
-    mask = (
-        (merged_final['Component Type'] == 'UL Wrap') &
-        (merged_final['Item/Case'].isna())
-    )
+merged_final.loc[mask, 'Wt/Case(g)'] = (
+    wt_case / trade_units
+)
+mask = (
+    (merged_final['Component Type'] == 'UL Wrap') &
+    (merged_final['Item/Case'].isna())
+)
 
     merged_final.loc[mask, 'Item/Case'] = (
         merged_final.loc[mask, 'Material Description']
