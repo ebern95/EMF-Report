@@ -261,120 +261,120 @@ def process_data(df1, df2, df3):
             .str.strip(),
         errors='coerce'
     )
-df3 = df3.dropna(
-    subset=['Specification', 'Trade Unit Per Logistic Unit']
-)
-df3 = df3.loc[df3.groupby('Specification')['Trade Unit Per Logistic Unit'].idxmin()]
-df3 = df3[['Specification','Trade Unit Per Logistic Unit']]
-df3 = df3.rename(columns={'Specification':'Final Product Specification'})
+    df3 = df3.dropna(
+        subset=['Specification', 'Trade Unit Per Logistic Unit']
+    )
+    df3 = df3.loc[df3.groupby('Specification')['Trade Unit Per Logistic Unit'].idxmin()]
+    df3 = df3[['Specification','Trade Unit Per Logistic Unit']]
+    df3 = df3.rename(columns={'Specification':'Final Product Specification'})
 
-merged_final = merged.merge(df3, on='Final Product Specification', how='left')
+    merged_final = merged.merge(df3, on='Final Product Specification', how='left')
 
     # Force numeric columns
-merged_final['Wt/Case(g)'] = pd.to_numeric(
-    merged_final['Wt/Case(g)'],
-    errors='coerce'
-).astype('float64')
+    merged_final['Wt/Case(g)'] = pd.to_numeric(
+        merged_final['Wt/Case(g)'],
+        errors='coerce'
+    ).astype('float64')
 
-merged_final['Trade Unit Per Logistic Unit'] = pd.to_numeric(
-    merged_final['Trade Unit Per Logistic Unit'],
-    errors='coerce'
-).astype('float64')
+    merged_final['Trade Unit Per Logistic Unit'] = pd.to_numeric(
+        merged_final['Trade Unit Per Logistic Unit'],
+        errors='coerce'
+    ).astype('float64')
 
     # -------- FIXED SECTION --------
-key_cols = [
-    'SKU Number',
-    'Material Description',
-    'Final Product Specification',
-    'Brand (Trade Description)',
-    'Trade Unit Per Logistic Unit'
-]
+    key_cols = [
+        'SKU Number',
+        'Material Description',
+        'Final Product Specification',
+        'Brand (Trade Description)',
+        'Trade Unit Per Logistic Unit'
+    ]
 
-merged_final = merged_final.copy()
-merged_final['_order'] = range(len(merged_final))
-merged_final['_type'] = 0
+    merged_final = merged_final.copy()
+    merged_final['_order'] = range(len(merged_final))
+    merged_final['_type'] = 0
 
-group_order = (
-    merged_final
-    .groupby(key_cols, as_index=False, dropna=False)['_order']
-    .max()
-)
+    group_order = (
+        merged_final
+        .groupby(key_cols, as_index=False, dropna=False)['_order']
+        .max()
+    )
 
-extra_rows = group_order[key_cols].copy()
+    extra_rows = group_order[key_cols].copy()
 
-for col in merged_final.columns:
-    if col not in extra_rows.columns:
-        extra_rows[col] = None
+    for col in merged_final.columns:
+        if col not in extra_rows.columns:
+            extra_rows[col] = None
 
-extra_rows['_order'] = group_order['_order']
-extra_rows['_type'] = 1
+    extra_rows['_order'] = group_order['_order']
+    extra_rows['_type'] = 1
 
-extra_rows = extra_rows[merged_final.columns]
+    extra_rows = extra_rows[merged_final.columns]
 
-merged_final = pd.concat([merged_final, extra_rows], ignore_index=True)
+    merged_final = pd.concat([merged_final, extra_rows], ignore_index=True)
 
-merged_final = merged_final.sort_values(['_order', '_type'])
-merged_final = merged_final.drop(columns=['_order', '_type']).reset_index(drop=True)
+    merged_final = merged_final.sort_values(['_order', '_type'])
+    merged_final = merged_final.drop(columns=['_order', '_type']).reset_index(drop=True)
 
-merged_final['Material & Subclass'] = merged_final['Material & Subclass'].fillna('FLEXIBLE - PE')
-merged_final['Wt/Case(g)'] = merged_final['Wt/Case(g)'].fillna(321.475)
-merged_final['EOL'] = merged_final['EOL'].fillna('RECYCLABLE')
+    merged_final['Material & Subclass'] = merged_final['Material & Subclass'].fillna('FLEXIBLE - PE')
+    merged_final['Wt/Case(g)'] = merged_final['Wt/Case(g)'].fillna(321.475)
+    merged_final['EOL'] = merged_final['EOL'].fillna('RECYCLABLE')
 
-merged_final['Component Type'] = merged_final['Component Type'].fillna('UL Wrap')
-merged_final['End User'] = merged_final['End User'].fillna('B2B')
+    merged_final['Component Type'] = merged_final['Component Type'].fillna('UL Wrap')
+    merged_final['End User'] = merged_final['End User'].fillna('B2B')
 
-mask = (
-    (merged_final['Wt/Case(g)'] == 321.475)
-    &
-    (merged_final['Trade Unit Per Logistic Unit'].notna())
-    &
-    (merged_final['Trade Unit Per Logistic Unit'] != 0)
-)
+    mask = (
+        (merged_final['Wt/Case(g)'] == 321.475)
+        &
+        (merged_final['Trade Unit Per Logistic Unit'].notna())
+        &
+        (merged_final['Trade Unit Per Logistic Unit'] != 0)
+    )
 
-wt_case = pd.to_numeric(
-    merged_final.loc[mask, 'Wt/Case(g)'],
-    errors='coerce'
-)
+    wt_case = pd.to_numeric(
+        merged_final.loc[mask, 'Wt/Case(g)'],
+        errors='coerce'
+    )
 
-trade_units = pd.to_numeric(
-    merged_final.loc[mask, 'Trade Unit Per Logistic Unit'],
-    errors='coerce'
-)
+    trade_units = pd.to_numeric(
+        merged_final.loc[mask, 'Trade Unit Per Logistic Unit'],
+        errors='coerce'
+    )
 
-merged_final.loc[mask, 'Wt/Case(g)'] = (
-    wt_case / trade_units
-)
-mask = (
-    (merged_final['Component Type'] == 'UL Wrap') &
-    (merged_final['Item/Case'].isna())
-)
+    merged_final.loc[mask, 'Wt/Case(g)'] = (
+        wt_case / trade_units
+    )
+    mask = (
+        (merged_final['Component Type'] == 'UL Wrap') &
+        (merged_final['Item/Case'].isna())
+    )
 
-merged_final.loc[mask, 'Item/Case'] = (
-    merged_final.loc[mask, 'Material Description']
-    .str.extract(r'(\d+)\s*[xX]', expand=False)
-)
+    merged_final.loc[mask, 'Item/Case'] = (
+        merged_final.loc[mask, 'Material Description']
+        .str.extract(r'(\d+)\s*[xX]', expand=False)
+    )
 
-merged_final['Item/Case'] = pd.to_numeric(merged_final['Item/Case'], errors='coerce')
+    merged_final['Item/Case'] = pd.to_numeric(merged_final['Item/Case'], errors='coerce')
 
-merged_final.loc[
-    merged_final['Wt/Item (g)'].isna(),
-    'Wt/Item (g)'
-] = (
-    merged_final['Wt/Case(g)'] /
-    merged_final['Item/Case']
-)
+    merged_final.loc[
+        merged_final['Wt/Item (g)'].isna(),
+        'Wt/Item (g)'
+    ] = (
+        merged_final['Wt/Case(g)'] /
+        merged_final['Item/Case']
+    )
 
-size_map = {
-    'BIB': 'SMALL',
-    'Flow Wrap': 'SMALL',
-    'Case': 'N/A',
-    'Carton': 'N/A',
-    'SUP': 'SMALL',
-    'Membrane': 'SMALL',
-    'UL Wrap': 'LARGE'
-}
+    size_map = {
+        'BIB': 'SMALL',
+        'Flow Wrap': 'SMALL',
+        'Case': 'N/A',
+        'Carton': 'N/A',
+        'SUP': 'SMALL',
+        'Membrane': 'SMALL',
+        'UL Wrap': 'LARGE'
+    }
 
-merged_final['Size'] = merged_final['Component Type'].map(size_map)
+    merged_final['Size'] = merged_final['Component Type'].map(size_map)
 
 return merged_final
 
