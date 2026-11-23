@@ -195,7 +195,20 @@ def process_data(df1, df2, df3):
 
     merged.loc[merged['Material & Subclass'] == 'CORRUGATED - BOARD','Item/Case'] = 1
 
-    merged['Wt/Item (g)'] = merged['Wt/Case(g)'] / merged['Item/Case']
+    merged['Wt/Case(g)'] = pd.to_numeric(
+        merged['Wt/Case(g)'],
+        errors='coerce'
+    )
+
+    merged['Item/Case'] = pd.to_numeric(
+        merged['Item/Case'],
+        errors='coerce'
+    )
+
+    merged['Wt/Item (g)'] = (
+        merged['Wt/Case(g)'] /
+        merged['Item/Case']
+    )
 
     merged['Wt % PCR'] = None
 
@@ -247,6 +260,17 @@ def process_data(df1, df2, df3):
 
     merged_final = merged.merge(df3, on='Final Product Specification', how='left')
 
+    # Force numeric columns
+    merged_final['Wt/Case(g)'] = pd.to_numeric(
+        merged_final['Wt/Case(g)'],
+        errors='coerce'
+    )
+
+    merged_final['Trade Unit Per Logistic Unit'] = pd.to_numeric(
+        merged_final['Trade Unit Per Logistic Unit'],
+        errors='coerce'
+    )
+
     # -------- FIXED SECTION --------
     key_cols = [
         'SKU Number',
@@ -297,10 +321,18 @@ def process_data(df1, df2, df3):
         (merged_final['Trade Unit Per Logistic Unit'] != 0)
     )
 
+    wt_case = pd.to_numeric(
+        merged_final.loc[mask, 'Wt/Case(g)'],
+        errors='coerce'
+    )
+
+    trade_units = pd.to_numeric(
+        merged_final.loc[mask, 'Trade Unit Per Logistic Unit'],
+        errors='coerce'
+    )
+
     merged_final.loc[mask, 'Wt/Case(g)'] = (
-        merged_final.loc[mask, 'Wt/Case(g)']
-        /
-        merged_final.loc[mask, 'Trade Unit Per Logistic Unit']
+        wt_case / trade_units
     )
     mask = (
         (merged_final['Component Type'] == 'UL Wrap') &
@@ -345,15 +377,28 @@ if st.button("🚀 Run EMF Report"):
     if file1 and file2 and file3:
 
         def read_csv_safe(uploaded_file):
-            try:
-                return pd.read_csv(uploaded_file, encoding="utf-8")
-            except UnicodeDecodeError:
-                uploaded_file.seek(0)
+
+            encodings = ["utf-8", "cp1252", "latin1"]
+
+            for enc in encodings:
+
                 try:
-                    return pd.read_csv(uploaded_file, encoding="cp1252")
-                except UnicodeDecodeError:
+
                     uploaded_file.seek(0)
-                    return pd.read_csv(uploaded_file, encoding="latin1")
+
+                    return pd.read_csv(
+                        uploaded_file,
+                        encoding=enc,
+                        engine="python",
+                        low_memory=False,
+                    )
+
+                except Exception:
+                    continue
+
+            raise ValueError(
+                f"Unable to read file {uploaded_file.name}"
+            )
 
         df1 = read_csv_safe(file1)
         df2 = read_csv_safe(file2)
