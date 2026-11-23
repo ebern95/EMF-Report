@@ -268,7 +268,7 @@ df3 = df3.loc[df3.groupby('Specification')['Trade Unit Per Logistic Unit'].idxmi
 df3 = df3[['Specification','Trade Unit Per Logistic Unit']]
 df3 = df3.rename(columns={'Specification':'Final Product Specification'})
 
-    merged_final = merged.merge(df3, on='Final Product Specification', how='left')
+merged_final = merged.merge(df3, on='Final Product Specification', how='left')
 
     # Force numeric columns
     merged_final['Wt/Case(g)'] = pd.to_numeric(
