@@ -271,15 +271,15 @@ df3 = df3.rename(columns={'Specification':'Final Product Specification'})
 merged_final = merged.merge(df3, on='Final Product Specification', how='left')
 
     # Force numeric columns
-    merged_final['Wt/Case(g)'] = pd.to_numeric(
-        merged_final['Wt/Case(g)'],
-        errors='coerce'
-    ).astype('float64')
+merged_final['Wt/Case(g)'] = pd.to_numeric(
+    merged_final['Wt/Case(g)'],
+    errors='coerce'
+).astype('float64')
 
-    merged_final['Trade Unit Per Logistic Unit'] = pd.to_numeric(
-        merged_final['Trade Unit Per Logistic Unit'],
-        errors='coerce'
-    ).astype('float64')
+merged_final['Trade Unit Per Logistic Unit'] = pd.to_numeric(
+    merged_final['Trade Unit Per Logistic Unit'],
+    errors='coerce'
+).astype('float64')
 
     # -------- FIXED SECTION --------
     key_cols = [
