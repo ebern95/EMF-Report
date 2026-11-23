@@ -376,7 +376,7 @@ size_map = {
 
 merged_final['Size'] = merged_final['Component Type'].map(size_map)
 
-return merged_final
+    return merged_final
 
 
 # -------------------------------
