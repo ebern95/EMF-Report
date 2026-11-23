@@ -265,8 +265,8 @@ df3 = df3.dropna(
     subset=['Specification', 'Trade Unit Per Logistic Unit']
 )
 df3 = df3.loc[df3.groupby('Specification')['Trade Unit Per Logistic Unit'].idxmin()]
-    df3 = df3[['Specification','Trade Unit Per Logistic Unit']]
-    df3 = df3.rename(columns={'Specification':'Final Product Specification'})
+df3 = df3[['Specification','Trade Unit Per Logistic Unit']]
+df3 = df3.rename(columns={'Specification':'Final Product Specification'})
 
     merged_final = merged.merge(df3, on='Final Product Specification', how='left')
 
