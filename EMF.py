@@ -349,34 +349,34 @@ mask = (
     (merged_final['Item/Case'].isna())
 )
 
-    merged_final.loc[mask, 'Item/Case'] = (
-        merged_final.loc[mask, 'Material Description']
-        .str.extract(r'(\d+)\s*[xX]', expand=False)
-    )
+merged_final.loc[mask, 'Item/Case'] = (
+    merged_final.loc[mask, 'Material Description']
+    .str.extract(r'(\d+)\s*[xX]', expand=False)
+)
 
-    merged_final['Item/Case'] = pd.to_numeric(merged_final['Item/Case'], errors='coerce')
+merged_final['Item/Case'] = pd.to_numeric(merged_final['Item/Case'], errors='coerce')
 
-    merged_final.loc[
-        merged_final['Wt/Item (g)'].isna(),
-        'Wt/Item (g)'
-    ] = (
-        merged_final['Wt/Case(g)'] /
-        merged_final['Item/Case']
-    )
+merged_final.loc[
+    merged_final['Wt/Item (g)'].isna(),
+    'Wt/Item (g)'
+] = (
+    merged_final['Wt/Case(g)'] /
+    merged_final['Item/Case']
+)
 
-    size_map = {
-        'BIB': 'SMALL',
-        'Flow Wrap': 'SMALL',
-        'Case': 'N/A',
-        'Carton': 'N/A',
-        'SUP': 'SMALL',
-        'Membrane': 'SMALL',
-        'UL Wrap': 'LARGE'
-    }
+size_map = {
+    'BIB': 'SMALL',
+    'Flow Wrap': 'SMALL',
+    'Case': 'N/A',
+    'Carton': 'N/A',
+    'SUP': 'SMALL',
+    'Membrane': 'SMALL',
+    'UL Wrap': 'LARGE'
+}
 
-    merged_final['Size'] = merged_final['Component Type'].map(size_map)
+merged_final['Size'] = merged_final['Component Type'].map(size_map)
 
-    return merged_final
+return merged_final
 
 
 # -------------------------------
