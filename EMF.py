@@ -339,9 +339,21 @@ if st.button("🚀 Run EMF Report"):
 
     if file1 and file2 and file3:
 
-        df1 = pd.read_csv(file1)
-        df2 = pd.read_csv(file2)
-        df3 = pd.read_csv(file3)
+        def read_csv_safe(uploaded_file):
+            try:
+                return pd.read_csv(uploaded_file, encoding="utf-8")
+            except UnicodeDecodeError:
+                uploaded_file.seek(0)
+                try:
+                    return pd.read_csv(uploaded_file, encoding="cp1252")
+                except UnicodeDecodeError:
+                    uploaded_file.seek(0)
+                    return pd.read_csv(uploaded_file, encoding="latin1")
+
+        df1 = read_csv_safe(file1)
+        df2 = read_csv_safe(file2)
+        df3 = read_csv_safe(file3)
+
 
         with st.spinner("Processing data..."):
             result = process_data(df1, df2, df3)
