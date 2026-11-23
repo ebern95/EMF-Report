@@ -254,6 +254,16 @@ def process_data(df1, df2, df3):
     ]
 
     df3 = df3.drop_duplicates(subset=['Specification','Trade Unit Per Logistic Unit'])
+    df3['Trade Unit Per Logistic Unit'] = pd.to_numeric(
+        df3['Trade Unit Per Logistic Unit']
+            .astype(str)
+            .str.replace(',', '', regex=False)
+            .str.strip(),
+        errors='coerce'
+    )
+df3 = df3.dropna(
+    subset=['Specification', 'Trade Unit Per Logistic Unit']
+)
     df3 = df3.loc[df3.groupby('Specification')['Trade Unit Per Logistic Unit'].idxmin()]
     df3 = df3[['Specification','Trade Unit Per Logistic Unit']]
     df3 = df3.rename(columns={'Specification':'Final Product Specification'})
@@ -264,12 +274,12 @@ def process_data(df1, df2, df3):
     merged_final['Wt/Case(g)'] = pd.to_numeric(
         merged_final['Wt/Case(g)'],
         errors='coerce'
-    )
+    ).astype('float64')
 
     merged_final['Trade Unit Per Logistic Unit'] = pd.to_numeric(
         merged_final['Trade Unit Per Logistic Unit'],
         errors='coerce'
-    )
+    ).astype('float64')
 
     # -------- FIXED SECTION --------
     key_cols = [
@@ -378,26 +388,36 @@ if st.button("🚀 Run EMF Report"):
 
         def read_csv_safe(uploaded_file):
 
-            encodings = ["utf-8", "cp1252", "latin1"]
+            encodings = ["utf-8-sig", "utf-8", "cp1252", "latin1"]
+            errors = []
 
             for enc in encodings:
-
                 try:
-
                     uploaded_file.seek(0)
 
-                    return pd.read_csv(
+                    df = pd.read_csv(
                         uploaded_file,
                         encoding=enc,
                         engine="python",
-                        low_memory=False,
+                        on_bad_lines="warn"
                     )
 
-                except Exception:
-                    continue
+                    df.columns = df.columns.astype(str).str.strip()
+
+                    return df
+
+                except UnicodeDecodeError as e:
+                    errors.append(f"{enc}: encoding error")
+
+                except pd.errors.ParserError as e:
+                    errors.append(f"{enc}: CSV structure error - {e}")
+
+                except Exception as e:
+                    errors.append(f"{enc}: {type(e).__name__} - {e}")
 
             raise ValueError(
-                f"Unable to read file {uploaded_file.name}"
+                f"Unable to read {uploaded_file.name}. "
+                + " | ".join(errors)
             )
 
         df1 = read_csv_safe(file1)
