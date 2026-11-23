@@ -289,14 +289,19 @@ def process_data(df1, df2, df3):
     merged_final['Component Type'] = merged_final['Component Type'].fillna('UL Wrap')
     merged_final['End User'] = merged_final['End User'].fillna('B2B')
 
-    merged_final.loc[
-        merged_final['Wt/Case(g)'] == 321.475,
-        'Wt/Case(g)'
-    ] = (
-        merged_final['Wt/Case(g)'] /
-        merged_final['Trade Unit Per Logistic Unit']
+    mask = (
+        (merged_final['Wt/Case(g)'] == 321.475)
+        &
+        (merged_final['Trade Unit Per Logistic Unit'].notna())
+        &
+        (merged_final['Trade Unit Per Logistic Unit'] != 0)
     )
 
+    merged_final.loc[mask, 'Wt/Case(g)'] = (
+        merged_final.loc[mask, 'Wt/Case(g)']
+        /
+        merged_final.loc[mask, 'Trade Unit Per Logistic Unit']
+    )
     mask = (
         (merged_final['Component Type'] == 'UL Wrap') &
         (merged_final['Item/Case'].isna())
